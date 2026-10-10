@@ -44,7 +44,7 @@ function App() {
         try {
 
             const response = await fetch(
-                `http://127.0.0.1:8080/availability?date=${date}&time=${time}&capacity=${capacity}`
+                `http://https://classroom-availability-backend-rwso.onrender.com/availability?date=${date}&time=${time}&capacity=${capacity}`
             );
 
             if (!response.ok) {
@@ -130,7 +130,7 @@ function App() {
             };
 
             const response = await fetch(
-                "http://127.0.0.1:8080/api/faculty/allocate",
+                "http://https://classroom-availability-backend-rwso.onrender.com/api/faculty/allocate",
                 {
                     method: "POST",
 
@@ -192,7 +192,7 @@ function App() {
         try {
 
             const response = await fetch(
-                "http://127.0.0.1:8080/api/faculty/1/allocations"
+                "http://https://classroom-availability-backend-rwso.onrender.com/api/faculty/1/allocations"
             );
 
             if (!response.ok) {

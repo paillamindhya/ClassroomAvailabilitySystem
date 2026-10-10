@@ -21,7 +21,7 @@ function FacultyLogin({ onLogin }) {
         try {
 
             const response = await fetch(
-                "http://127.0.0.1:8080/faculty/login",
+                "http://https://classroom-availability-backend-rwso.onrender.com/faculty/login",
                 {
                     method: "POST",
                     headers: {
