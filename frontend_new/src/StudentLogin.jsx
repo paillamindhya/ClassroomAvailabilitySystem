@@ -1,182 +1,94 @@
-import { useState } from "react";
 
-function StudentLogin({ onLogin }) {
+import React, { useState } from "react";
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+function StudentLogin() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    setLoading(true);
 
-        setError("");
-
-        if (!email || !password) {
-            setError("Please enter email and password.");
-            return;
+    try {
+      const response = await fetch(
+        "https://classroom-availability-backend-rwso.onrender.com/student/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email.trim(),
+            password: password,
+          }),
         }
+      );
 
-        setLoading(true);
+      const data = await response.json().catch(() => ({}));
 
-        try {
-            const response = await fetch(
-                "http://https://classroom-availability-backend-rwso.onrender.com/student/login",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password
-                    })
-                }
-            );
+      if (!response.ok) {
+        setMessage(
+          data.message ||
+            data.error ||
+            `Login failed (${response.status}). Check your credentials.`
+        );
+        return;
+      }
 
-            const data = await response.json();
+      // Keep the login response available for the dashboard.
+      localStorage.setItem("student", JSON.stringify(data));
 
-            if (response.ok) {
-                onLogin(data);
-            } else {
-                setError(
-                    data.message || "Invalid student email or password."
-                );
-            }
+      setMessage("Login successful!");
 
-        } catch (error) {
-            setError("Unable to connect to Java backend.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div style={styles.page}>
-
-            <div style={styles.loginBox}>
-
-                <h1 style={styles.title}>
-                    Student Login
-                </h1>
-
-                <p style={styles.subtitle}>
-                    Classroom Availability System
-                </p>
-
-                <div style={styles.inputGroup}>
-                    <label style={styles.label}>
-                        Student Email
-                    </label>
-
-                    <input
-                        type="email"
-                        placeholder="Enter student email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        style={styles.input}
-                    />
-                </div>
-
-                <div style={styles.inputGroup}>
-                    <label style={styles.label}>
-                        Password
-                    </label>
-
-                    <input
-                        type="password"
-                        placeholder="Enter password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        style={styles.input}
-                    />
-                </div>
-
-                {error && (
-                    <p style={styles.error}>
-                        {error}
-                    </p>
-                )}
-
-                <button
-                    onClick={handleLogin}
-                    style={styles.button}
-                    disabled={loading}
-                >
-                    {loading ? "Logging in..." : "Login"}
-                </button>
-
-            </div>
-
-        </div>
-    );
-}
-
-const styles = {
-
-    page: {
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#f4f7fb",
-        fontFamily: "Arial, sans-serif"
-    },
-
-    loginBox: {
-        width: "380px",
-        backgroundColor: "white",
-        padding: "40px",
-        borderRadius: "15px",
-        boxShadow: "0 5px 20px rgba(0,0,0,0.1)"
-    },
-
-    title: {
-        textAlign: "center",
-        marginBottom: "8px"
-    },
-
-    subtitle: {
-        textAlign: "center",
-        color: "#666",
-        marginBottom: "30px"
-    },
-
-    inputGroup: {
-        marginBottom: "20px"
-    },
-
-    label: {
-        display: "block",
-        marginBottom: "8px",
-        fontWeight: "bold"
-    },
-
-    input: {
-        width: "100%",
-        boxSizing: "border-box",
-        padding: "12px",
-        border: "1px solid #ccc",
-        borderRadius: "6px",
-        fontSize: "15px"
-    },
-
-    button: {
-        width: "100%",
-        padding: "13px",
-        backgroundColor: "#16a34a",
-        color: "white",
-        border: "none",
-        borderRadius: "6px",
-        fontSize: "16px",
-        fontWeight: "bold",
-        cursor: "pointer"
-    },
-
-    error: {
-        color: "#dc2626",
-        textAlign: "center",
-        marginBottom: "15px"
+      // If your project has a student dashboard route, open it.
+      window.location.href = "/student-dashboard";
+    } catch (error) {
+      console.error("Student login error:", error);
+      setMessage(
+        "Unable to connect to Java backend. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
-};
+  };
+
+  return (
+    <div className="login-container">
+      <h2>Student Login</h2>
+      <p>Classroom Availability System</p>
+
+      <form onSubmit={handleLogin}>
+        <label htmlFor="email">Student Email</label>
+        <input
+          id="email"
+          type="email"
+          placeholder="Enter student email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+
+        <label htmlFor="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          placeholder="Enter password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        <button type="submit" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
+      </form>
+
+      {message && <p role="alert">{message}</p>}
+    </div>
+  );
+}
 
 export default StudentLogin;
