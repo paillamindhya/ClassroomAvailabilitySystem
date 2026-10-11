@@ -1,3 +1,4 @@
+
 package com.example.backend.controller;
 
 import java.util.List;
@@ -13,7 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @CrossOrigin(origins = {
     "http://localhost:5173",
-    "http://127.0.0.1:5173"
+    "http://127.0.0.1:5173",
+    "https://classroom-availability-frontend-mindhya.onrender.com"
 })
 public class ClassroomController {
 
@@ -33,15 +35,15 @@ public class ClassroomController {
                 c.room_name
             FROM classrooms c
             WHERE c.capacity >= ?
-              AND c.id NOT IN (
-                  SELECT
-                      t.room_id
-                  FROM timetable t
-                  WHERE
-                      t.date = ?
-                      AND ? >= t.start_time
-                      AND ? < t.end_time
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM faculty_allocations fa
+                  WHERE fa.room_id = c.id
+                    AND fa.allocation_date = ?
+                    AND CAST(? AS TIME) < fa.end_time
+                    AND CAST(? AS TIME) >= fa.start_time
               )
+            ORDER BY c.room_name
             """;
 
         return jdbcTemplate.queryForList(
