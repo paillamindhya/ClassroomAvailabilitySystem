@@ -1,6 +1,9 @@
+
 import React, { useState } from "react";
 
-function StudentLogin() {
+const API = "https://classroom-availability-backend-rwso.onrender.com";
+
+function StudentLogin({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -12,19 +15,16 @@ function StudentLogin() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "https://classroom-availability-backend-rwso.onrender.com/student/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: email.trim(),
-            password: password,
-          }),
-        }
-      );
+      const response = await fetch(`${API}/student/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password,
+        }),
+      });
 
       const data = await response.json().catch(() => ({}));
 
@@ -32,23 +32,25 @@ function StudentLogin() {
         setMessage(
           data.message ||
             data.error ||
-            `Login failed (${response.status}). Check your credentials.`
+            `Login failed (${response.status}). Please check your credentials.`
         );
         return;
       }
 
-      // Keep the login response available for the dashboard.
+      // Save student login information.
       localStorage.setItem("student", JSON.stringify(data));
 
-      setMessage("Login successful!");
-
-      // If your project has a student dashboard route, open it.
-      window.location.href = "/student-dashboard";
+      // Send student data to App.jsx.
+      if (typeof onLogin === "function") {
+        onLogin(data);
+      } else {
+        setMessage(
+          "Login successful, but dashboard navigation is not configured."
+        );
+      }
     } catch (error) {
       console.error("Student login error:", error);
-      setMessage(
-        "Unable to connect to Java backend. Please try again."
-      );
+      setMessage("Unable to connect to the server. Please try again.");
     } finally {
       setLoading(false);
     }
